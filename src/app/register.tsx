@@ -12,6 +12,8 @@ import {
 import { useRouter } from 'expo-router';
 import { useRegisterViewModel } from '../viewmodels/useRegisterViewModel';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { FieldFeedback } from '../components/FieldFeedback';
+import { getPasswordStrength } from '../core/authValidators';
 
 // ─── Helpers de validación ──────────────────────────────────────────────────
 // Solo letras (mayúsculas, minúsculas, tildes, ñ) y espacios
@@ -66,43 +68,6 @@ function validateConfirm(v: string, password: string): string | null {
     if (!v) return 'Confirma tu contraseña.';
     if (v !== password) return 'Las contraseñas no coinciden.';
     return null;
-}
-
-// ─── Fortaleza de contraseña ────────────────────────────────────────────────
-function getPasswordStrength(v: string): { level: 0 | 1 | 2 | 3; label: string; color: string } {
-    if (v.length === 0) return { level: 0, label: '', color: '#E2E8F0' };
-    let score = 0;
-    if (v.length >= 8) score++;
-    if (/[A-Z]/.test(v)) score++;
-    if (/\d/.test(v)) score++;
-    if (/[^A-Za-z0-9]/.test(v)) score++;
-
-    if (score <= 1) return { level: 1, label: 'Débil', color: '#EF4444' };
-    if (score === 2) return { level: 2, label: 'Media', color: '#F59E0B' };
-    return { level: 3, label: 'Fuerte', color: '#10B981' };
-}
-
-// ─── Feedback de campo: muestra hint en gris o error en rojo ───────────────
-interface FieldFeedbackProps {
-    readonly error: string | null;
-    readonly hint: string;
-}
-
-function FieldFeedback({ error, hint }: FieldFeedbackProps) {
-    if (error) {
-        return (
-            <View className="flex-row items-center mt-1.5 mb-1 px-1 gap-1">
-                <MaterialCommunityIcons name="alert-circle-outline" size={13} color="#EF4444" />
-                <Text className="text-red-500 text-xs font-medium flex-1">{error}</Text>
-            </View>
-        );
-    }
-    return (
-        <View className="flex-row items-center mt-1.5 mb-1 px-1 gap-1">
-            <MaterialCommunityIcons name="information-outline" size={13} color="#94A3B8" />
-            <Text className="text-slate-400 text-xs flex-1">{hint}</Text>
-        </View>
-    );
 }
 
 // ─── Componente de input reutilizable ──────────────────────────────────────

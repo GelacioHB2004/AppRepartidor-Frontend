@@ -13,6 +13,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useRecoveryViewModel } from '../viewmodels/useRecoveryViewModel';
 import { AuthRepository } from '../models/repositories/AuthRepository';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { CodeProgressHint } from '../components/CodeProgressHint';
 
 const DIGIT_KEYS = ['rec-d0', 'rec-d1', 'rec-d2', 'rec-d3'] as const;
 
@@ -123,29 +124,7 @@ export default function VerifyRecoveryScreen() {
                     </View>
 
                     {/* ── Hint dinámico de progreso ───────────────────── */}
-                    {(() => {
-                        const filled = digits.filter(d => d !== '').length;
-                        if (filled === 4) {
-                            return (
-                                <View className="flex-row items-center justify-center gap-1 mt-2 mb-10">
-                                    <MaterialCommunityIcons name="check-circle" size={14} color="#10B981" />
-                                    <Text className="text-emerald-600 text-xs font-semibold">
-                                        Codigo completo, listo para verificar
-                                    </Text>
-                                </View>
-                            );
-                        }
-                        return (
-                            <View className="flex-row items-center justify-center gap-1 mt-2 mb-10">
-                                <MaterialCommunityIcons name="information-outline" size={14} color="#94A3B8" />
-                                <Text className="text-slate-400 text-xs">
-                                    {filled === 0
-                                        ? 'Ingresa los 4 digitos del codigo'
-                                        : filled + ' de 4 digitos ingresados'}
-                                </Text>
-                            </View>
-                        );
-                    })()}
+                    <CodeProgressHint digits={digits} />
 
                     {/* ── Botón Verificar código ─────────────────────── */}
                     {(() => {
