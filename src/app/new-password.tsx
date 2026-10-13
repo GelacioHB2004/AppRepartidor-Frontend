@@ -32,7 +32,7 @@ function getPasswordStrength(v: string): { level: 0 | 1 | 2 | 3; label: string; 
     let score = 0;
     if (v.length >= 8) score++;
     if (/[A-Z]/.test(v)) score++;
-    if (/[0-9]/.test(v)) score++;
+    if (/\d/.test(v)) score++;
     if (/[^A-Za-z0-9]/.test(v)) score++;
 
     if (score <= 1) return { level: 1, label: 'Debil', color: '#EF4444' };
@@ -41,7 +41,12 @@ function getPasswordStrength(v: string): { level: 0 | 1 | 2 | 3; label: string; 
 }
 
 // ─── Feedback de campo: hint en gris o error en rojo ────────────────────────
-function FieldFeedback({ error, hint }: { error: string | null; hint: string }) {
+interface FieldFeedbackProps {
+    readonly error: string | null;
+    readonly hint: string;
+}
+
+function FieldFeedback({ error, hint }: FieldFeedbackProps) {
     if (error) {
         return (
             <View className="flex-row items-center mt-1.5 mb-2 px-1 gap-1">
@@ -110,12 +115,19 @@ export default function NewPasswordScreen() {
         setConfirmError(errConfirm);
 
         if (errPass || errConfirm) return;
-        vm.handleResetPassword(correo);
+        void vm.handleResetPassword(correo);
     };
 
     // ── Estado del botón y fortaleza ────────────────────────────────────────
     const isFormReady = vm.nuevaPassword.length > 0 && vm.confirmarPassword.length > 0;
     const strength = getPasswordStrength(vm.nuevaPassword);
+
+    let buttonBg = 'bg-slate-300';
+    if (vm.isLoading) {
+        buttonBg = 'bg-blue-400';
+    } else if (isFormReady) {
+        buttonBg = 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30';
+    }
 
     return (
         <KeyboardAvoidingView
@@ -267,12 +279,7 @@ export default function NewPasswordScreen() {
 
                         {/* ── Botón: Cambiar contraseña ────────────────── */}
                         <TouchableOpacity
-                            className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg w-full mt-2 ${vm.isLoading
-                                ? 'bg-blue-400'
-                                : isFormReady
-                                    ? 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30'
-                                    : 'bg-slate-300'
-                                }`}
+                            className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg w-full mt-2 ${buttonBg}`}
                             onPress={handleSubmit}
                             disabled={vm.isLoading}
                         >

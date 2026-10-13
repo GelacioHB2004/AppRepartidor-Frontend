@@ -9,14 +9,15 @@ import {
     Platform,
     ScrollView
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useRecoveryViewModel } from '../viewmodels/useRecoveryViewModel';
 import { AuthRepository } from '../models/repositories/AuthRepository';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+const DIGIT_KEYS = ['rec-d0', 'rec-d1', 'rec-d2', 'rec-d3'] as const;
+
 export default function VerifyRecoveryScreen() {
     const { correo } = useLocalSearchParams<{ correo: string }>();
-    const router = useRouter();
     const vm = useRecoveryViewModel();
     const [digits, setDigits] = useState(['', '', '', '']);
     const [isResending, setIsResending] = useState(false);
@@ -25,7 +26,7 @@ export default function VerifyRecoveryScreen() {
 
     const handleChange = (text: string, index: number) => {
         const newDigits = [...digits];
-        newDigits[index] = text.replace(/[^0-9]/g, '');
+        newDigits[index] = text.replace(/\D/g, '');
         setDigits(newDigits);
         if (text && index < 3) inputs.current[index + 1]?.focus();
     };
@@ -39,7 +40,7 @@ export default function VerifyRecoveryScreen() {
         if (codigo.length < 4) {
             return;
         }
-        vm.handleVerifyRecovery(correo, codigo);
+        void vm.handleVerifyRecovery(correo, codigo);
     };
 
     const handleResend = async () => {
@@ -102,13 +103,14 @@ export default function VerifyRecoveryScreen() {
                     <View className="flex-row justify-center gap-3 mb-2 mt-2">
                         {digits.map((digit, i) => (
                             <TextInput
-                                key={i}
+                                key={DIGIT_KEYS[i]}
                                 ref={(ref) => { if (ref) inputs.current[i] = ref; }}
                                 className="w-16 h-16 rounded-2xl text-slate-800 text-2xl font-bold text-center shadow-sm"
                                 style={{
                                     borderWidth: 2,
                                     borderColor: digit ? '#0038FF' : '#E2E8F0',
                                     backgroundColor: digit ? '#F0F4FF' : '#FFFFFF',
+                                    textAlign: 'center',
                                 }}
                                 value={digit}
                                 onChangeText={(text) => handleChange(text, i)}
@@ -148,14 +150,16 @@ export default function VerifyRecoveryScreen() {
                     {/* ── Botón Verificar código ─────────────────────── */}
                     {(() => {
                         const isComplete = digits.every(d => d !== '');
+                        let btnBg = 'bg-slate-300';
+                        if (vm.isLoading) {
+                            btnBg = 'bg-blue-400';
+                        } else if (isComplete) {
+                            btnBg = 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30';
+                        }
+
                         return (
                             <TouchableOpacity
-                                className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg w-full mb-6 ${vm.isLoading
-                                    ? 'bg-blue-400'
-                                    : isComplete
-                                        ? 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30'
-                                        : 'bg-slate-300'
-                                    }`}
+                                className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg w-full mb-6 ${btnBg}`}
                                 onPress={handleVerify}
                                 disabled={vm.isLoading || !isComplete}
                             >

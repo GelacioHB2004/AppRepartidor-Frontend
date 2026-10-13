@@ -14,7 +14,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
 
 // ─── Helpers de validación ──────────────────────────────────────────────────
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 function validateCorreo(value: string): string | null {
     if (!value.trim()) return 'El correo es obligatorio.';
@@ -30,7 +30,7 @@ function validatePassword(value: string): string | null {
 
 // ─── Componente de campo con error ─────────────────────────────────────────
 interface FieldErrorProps {
-    message: string | null;
+    readonly message: string | null;
 }
 function FieldError({ message }: FieldErrorProps) {
     if (!message) return null;
@@ -99,11 +99,18 @@ export default function LoginScreen() {
         if (errCorreo || errPass) return;
 
         // Si pasó las validaciones locales, llamar al ViewModel
-        handleLogin();
+        void handleLogin();
     };
 
     // Botón habilitado solo si ambos campos tienen contenido
     const isFormReady = correo.trim().length > 0 && password.length > 0;
+
+    let buttonBg = 'bg-slate-300';
+    if (isLoading) {
+        buttonBg = 'bg-blue-400';
+    } else if (isFormReady) {
+        buttonBg = 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30';
+    }
 
     return (
         <KeyboardAvoidingView
@@ -228,13 +235,7 @@ export default function LoginScreen() {
 
                     {/* ── Botón: Iniciar Sesión ──────────────────────────── */}
                     <TouchableOpacity
-                        className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg ${
-                            isLoading
-                                ? 'bg-blue-400'
-                                : isFormReady
-                                    ? 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30'
-                                    : 'bg-slate-300'
-                        }`}
+                        className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg ${buttonBg}`}
                         onPress={handleSubmit}
                         disabled={isLoading}
                     >

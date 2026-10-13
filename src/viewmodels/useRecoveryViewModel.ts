@@ -5,6 +5,8 @@ import { useRouter } from 'expo-router';
 // Estado compartido entre pantallas de recuperación
 export type RecoveryStep = 'email' | 'verify' | 'newPassword';
 
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 export const useRecoveryViewModel = () => {
     const router = useRouter();
     const [correo, setCorreo] = useState('');
@@ -17,7 +19,7 @@ export const useRecoveryViewModel = () => {
 
     const handleRequestRecovery = async () => {
         setError(null);
-        if (!correo.trim() || !/\S+@\S+\.\S+/.test(correo)) {
+        if (!correo.trim() || !EMAIL_REGEX.test(correo.trim())) {
             setError('Ingresa un correo electrónico válido.');
             return;
         }
