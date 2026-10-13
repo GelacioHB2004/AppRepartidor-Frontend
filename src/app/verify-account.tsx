@@ -13,8 +13,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AuthRepository } from '../models/repositories/AuthRepository';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { CodeProgressHint } from '../components/CodeProgressHint';
-
-const DIGIT_KEYS = ['acc-d0', 'acc-d1', 'acc-d2', 'acc-d3'] as const;
+import { OtpDigitsInput } from '../components/OtpDigitsInput';
 
 export default function VerifyAccountScreen() {
     const { correo } = useLocalSearchParams<{ correo: string }>();
@@ -24,22 +23,6 @@ export default function VerifyAccountScreen() {
     const [isResending, setIsResending] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const inputs = useRef<TextInput[]>([]);
-
-    const handleChange = (text: string, index: number) => {
-        const newDigits = [...digits];
-        newDigits[index] = text.replace(/\D/g, '');
-        setDigits(newDigits);
-        if (text && index < 3) {
-            inputs.current[index + 1]?.focus();
-        }
-    };
-
-    const handleKeyPress = (key: string, index: number) => {
-        if (key === 'Backspace' && !digits[index] && index > 0) {
-            inputs.current[index - 1]?.focus();
-        }
-    };
 
     const handleVerify = async () => {
         const codigo = digits.join('');
@@ -117,27 +100,7 @@ export default function VerifyAccountScreen() {
                     )}
 
                     {/* ── Cajitas de 4 dígitos ──────────────────────── */}
-                    <View className="flex-row justify-center gap-3 mb-2 mt-2">
-                        {digits.map((digit, i) => (
-                            <TextInput
-                                key={DIGIT_KEYS[i]}
-                                ref={(ref) => { if (ref) inputs.current[i] = ref; }}
-                                className="w-16 h-16 bg-white rounded-2xl text-slate-800 text-2xl font-bold text-center shadow-sm"
-                                style={{
-                                    borderWidth: 2,
-                                    borderColor: digit ? '#0038FF' : '#E2E8F0',
-                                    backgroundColor: digit ? '#F0F4FF' : '#FFFFFF',
-                                    textAlign: 'center',
-                                }}
-                                value={digit}
-                                onChangeText={(text) => handleChange(text, i)}
-                                onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, i)}
-                                keyboardType="number-pad"
-                                maxLength={1}
-                                selectTextOnFocus
-                            />
-                        ))}
-                    </View>
+                    <OtpDigitsInput digits={digits} setDigits={setDigits} keyPrefix="acc" />
 
                     {/* ── Hint dinámico: progreso o error ──────────────── */}
                     <CodeProgressHint digits={digits} />
