@@ -12,6 +12,8 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AuthRepository } from '../models/repositories/AuthRepository';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { CodeProgressHint } from '../components/CodeProgressHint';
+import { OtpDigitsInput } from '../components/OtpDigitsInput';
 
 export default function VerifyAccountScreen() {
     const { correo } = useLocalSearchParams<{ correo: string }>();
@@ -21,22 +23,6 @@ export default function VerifyAccountScreen() {
     const [isResending, setIsResending] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const inputs = useRef<TextInput[]>([]);
-
-    const handleChange = (text: string, index: number) => {
-        const newDigits = [...digits];
-        newDigits[index] = text.replace(/[^0-9]/g, '');
-        setDigits(newDigits);
-        if (text && index < 3) {
-            inputs.current[index + 1]?.focus();
-        }
-    };
-
-    const handleKeyPress = (key: string, index: number) => {
-        if (key === 'Backspace' && !digits[index] && index > 0) {
-            inputs.current[index - 1]?.focus();
-        }
-    };
 
     const handleVerify = async () => {
         const codigo = digits.join('');
@@ -114,63 +100,24 @@ export default function VerifyAccountScreen() {
                     )}
 
                     {/* ── Cajitas de 4 dígitos ──────────────────────── */}
-                    <View className="flex-row justify-center gap-3 mb-2 mt-2">
-                        {digits.map((digit, i) => (
-                            <TextInput
-                                key={i}
-                                ref={(ref) => { if (ref) inputs.current[i] = ref; }}
-                                className="w-16 h-16 bg-white rounded-2xl text-slate-800 text-2xl font-bold text-center shadow-sm"
-                                style={{
-                                    borderWidth: 2,
-                                    borderColor: digit ? '#0038FF' : '#E2E8F0',
-                                    backgroundColor: digit ? '#F0F4FF' : '#FFFFFF',
-                                }}
-                                value={digit}
-                                onChangeText={(text) => handleChange(text, i)}
-                                onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, i)}
-                                keyboardType="number-pad"
-                                maxLength={1}
-                                selectTextOnFocus
-                            />
-                        ))}
-                    </View>
+                    <OtpDigitsInput digits={digits} setDigits={setDigits} keyPrefix="acc" />
 
                     {/* ── Hint dinámico: progreso o error ──────────────── */}
-                    {(() => {
-                        const filled = digits.filter(d => d !== '').length;
-                        if (filled === 4) {
-                            return (
-                                <View className="flex-row items-center justify-center gap-1 mt-2 mb-10">
-                                    <MaterialCommunityIcons name="check-circle" size={14} color="#10B981" />
-                                    <Text className="text-emerald-600 text-xs font-semibold">
-                                        Codigo completo, listo para verificar
-                                    </Text>
-                                </View>
-                            );
-                        }
-                        return (
-                            <View className="flex-row items-center justify-center gap-1 mt-2 mb-10">
-                                <MaterialCommunityIcons name="information-outline" size={14} color="#94A3B8" />
-                                <Text className="text-slate-400 text-xs">
-                                    {filled === 0
-                                        ? 'Ingresa los 4 digitos del codigo'
-                                        : filled + ' de 4 digitos ingresados'}
-                                </Text>
-                            </View>
-                        );
-                    })()}
+                    <CodeProgressHint digits={digits} />
 
                     {/* Verify Button */}
                     {(() => {
                         const isComplete = digits.every(d => d !== '');
+                        let btnBg = 'bg-slate-300';
+                        if (isLoading) {
+                            btnBg = 'bg-blue-400';
+                        } else if (isComplete) {
+                            btnBg = 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30';
+                        }
+
                         return (
                             <TouchableOpacity
-                                className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg w-full mb-6 ${isLoading
-                                        ? 'bg-blue-400'
-                                        : isComplete
-                                            ? 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30'
-                                            : 'bg-slate-300'
-                                    }`}
+                                className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg w-full mb-6 ${btnBg}`}
                                 onPress={handleVerify}
                                 disabled={isLoading || !isComplete}
                             >

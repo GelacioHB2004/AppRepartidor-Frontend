@@ -12,32 +12,15 @@ import {
 import { useRouter } from 'expo-router';
 import { useRecoveryViewModel } from '../viewmodels/useRecoveryViewModel';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { FieldFeedback } from '../components/FieldFeedback';
 
 // ─── Validación de correo ────────────────────────────────────────────────────
-const EMAIL_REGEX = /^[a-zA-Z0-9._+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 function validateCorreo(v: string): string | null {
     if (!v.trim()) return 'El correo es obligatorio.';
     if (!EMAIL_REGEX.test(v)) return 'Formato invalido. Ejemplo: nombre@dominio.com';
     return null;
-}
-
-// ─── Feedback de campo: hint en gris o error en rojo ────────────────────────
-function FieldFeedback({ error, hint }: { error: string | null; hint: string }) {
-    if (error) {
-        return (
-            <View className="flex-row items-center mt-1.5 mb-2 px-1 gap-1">
-                <MaterialCommunityIcons name="alert-circle-outline" size={13} color="#EF4444" />
-                <Text className="text-red-500 text-xs font-medium flex-1">{error}</Text>
-            </View>
-        );
-    }
-    return (
-        <View className="flex-row items-center mt-1.5 mb-2 px-1 gap-1">
-            <MaterialCommunityIcons name="information-outline" size={13} color="#94A3B8" />
-            <Text className="text-slate-400 text-xs flex-1">{hint}</Text>
-        </View>
-    );
 }
 
 // ─── Pantalla principal ──────────────────────────────────────────────────────
@@ -64,10 +47,17 @@ export default function RecoveryScreen() {
         const err = validateCorreo(vm.correo);
         setCorreoError(err);
         if (err) return;
-        vm.handleRequestRecovery();
+        void vm.handleRequestRecovery();
     };
 
     const isFormReady = !validateCorreo(vm.correo);
+
+    let buttonBg = 'bg-slate-300';
+    if (vm.isLoading) {
+        buttonBg = 'bg-blue-400';
+    } else if (isFormReady) {
+        buttonBg = 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30';
+    }
 
     return (
         <KeyboardAvoidingView
@@ -147,12 +137,7 @@ export default function RecoveryScreen() {
 
                     {/* ── Botón: Enviar código ──────────────────────────── */}
                     <TouchableOpacity
-                        className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg w-full mt-2 ${vm.isLoading
-                            ? 'bg-blue-400'
-                            : isFormReady
-                                ? 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30'
-                                : 'bg-slate-300'
-                            }`}
+                        className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg w-full mt-2 ${buttonBg}`}
                         onPress={handleSubmit}
                         disabled={vm.isLoading}
                     >

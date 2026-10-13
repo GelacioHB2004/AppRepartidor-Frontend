@@ -12,6 +12,8 @@ import {
 import { useLocalSearchParams } from 'expo-router';
 import { useRecoveryViewModel } from '../viewmodels/useRecoveryViewModel';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { FieldFeedback } from '../components/FieldFeedback';
+import { getPasswordStrength } from '../core/authValidators';
 
 // ─── Validaciones ────────────────────────────────────────────────────────────
 function validatePassword(v: string): string | null {
@@ -24,38 +26,6 @@ function validateConfirm(v: string, password: string): string | null {
     if (!v) return 'Confirma tu contraseña.';
     if (v !== password) return 'Las contraseñas no coinciden.';
     return null;
-}
-
-// ─── Fortaleza de contraseña ─────────────────────────────────────────────────
-function getPasswordStrength(v: string): { level: 0 | 1 | 2 | 3; label: string; color: string } {
-    if (v.length === 0) return { level: 0, label: '', color: '#E2E8F0' };
-    let score = 0;
-    if (v.length >= 8) score++;
-    if (/[A-Z]/.test(v)) score++;
-    if (/[0-9]/.test(v)) score++;
-    if (/[^A-Za-z0-9]/.test(v)) score++;
-
-    if (score <= 1) return { level: 1, label: 'Debil', color: '#EF4444' };
-    if (score === 2) return { level: 2, label: 'Media', color: '#F59E0B' };
-    return { level: 3, label: 'Fuerte', color: '#10B981' };
-}
-
-// ─── Feedback de campo: hint en gris o error en rojo ────────────────────────
-function FieldFeedback({ error, hint }: { error: string | null; hint: string }) {
-    if (error) {
-        return (
-            <View className="flex-row items-center mt-1.5 mb-2 px-1 gap-1">
-                <MaterialCommunityIcons name="alert-circle-outline" size={13} color="#EF4444" />
-                <Text className="text-red-500 text-xs font-medium flex-1">{error}</Text>
-            </View>
-        );
-    }
-    return (
-        <View className="flex-row items-center mt-1.5 mb-2 px-1 gap-1">
-            <MaterialCommunityIcons name="information-outline" size={13} color="#94A3B8" />
-            <Text className="text-slate-400 text-xs flex-1">{hint}</Text>
-        </View>
-    );
 }
 
 // ─── Pantalla principal ──────────────────────────────────────────────────────
@@ -110,12 +80,19 @@ export default function NewPasswordScreen() {
         setConfirmError(errConfirm);
 
         if (errPass || errConfirm) return;
-        vm.handleResetPassword(correo);
+        void vm.handleResetPassword(correo);
     };
 
     // ── Estado del botón y fortaleza ────────────────────────────────────────
     const isFormReady = vm.nuevaPassword.length > 0 && vm.confirmarPassword.length > 0;
     const strength = getPasswordStrength(vm.nuevaPassword);
+
+    let buttonBg = 'bg-slate-300';
+    if (vm.isLoading) {
+        buttonBg = 'bg-blue-400';
+    } else if (isFormReady) {
+        buttonBg = 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30';
+    }
 
     return (
         <KeyboardAvoidingView
@@ -267,12 +244,7 @@ export default function NewPasswordScreen() {
 
                         {/* ── Botón: Cambiar contraseña ────────────────── */}
                         <TouchableOpacity
-                            className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg w-full mt-2 ${vm.isLoading
-                                ? 'bg-blue-400'
-                                : isFormReady
-                                    ? 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30'
-                                    : 'bg-slate-300'
-                                }`}
+                            className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg w-full mt-2 ${buttonBg}`}
                             onPress={handleSubmit}
                             disabled={vm.isLoading}
                         >

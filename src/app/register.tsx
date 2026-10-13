@@ -12,12 +12,14 @@ import {
 import { useRouter } from 'expo-router';
 import { useRegisterViewModel } from '../viewmodels/useRegisterViewModel';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { FieldFeedback } from '../components/FieldFeedback';
+import { getPasswordStrength } from '../core/authValidators';
 
 // ─── Helpers de validación ──────────────────────────────────────────────────
 // Solo letras (mayúsculas, minúsculas, tildes, ñ) y espacios
 const LETTERS_REGEX = /^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s]+$/;
 // Correo: letras/números/._+- antes del @, dominio válido, extensión mín. 2 letras
-const EMAIL_REGEX = /^[a-zA-Z0-9._+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const PHONE_REGEX = /^\d{10}$/;
 
 // Filtra caracteres no permitidos en nombre/apellidos
@@ -68,56 +70,24 @@ function validateConfirm(v: string, password: string): string | null {
     return null;
 }
 
-// ─── Fortaleza de contraseña ────────────────────────────────────────────────
-function getPasswordStrength(v: string): { level: 0 | 1 | 2 | 3; label: string; color: string } {
-    if (v.length === 0) return { level: 0, label: '', color: '#E2E8F0' };
-    let score = 0;
-    if (v.length >= 8) score++;
-    if (/[A-Z]/.test(v)) score++;
-    if (/[0-9]/.test(v)) score++;
-    if (/[^A-Za-z0-9]/.test(v)) score++;
-
-    if (score <= 1) return { level: 1, label: 'Débil', color: '#EF4444' };
-    if (score === 2) return { level: 2, label: 'Media', color: '#F59E0B' };
-    return { level: 3, label: 'Fuerte', color: '#10B981' };
-}
-
-// ─── Feedback de campo: muestra hint en gris o error en rojo ───────────────
-function FieldFeedback({ error, hint }: { error: string | null; hint: string }) {
-    if (error) {
-        return (
-            <View className="flex-row items-center mt-1.5 mb-1 px-1 gap-1">
-                <MaterialCommunityIcons name="alert-circle-outline" size={13} color="#EF4444" />
-                <Text className="text-red-500 text-xs font-medium flex-1">{error}</Text>
-            </View>
-        );
-    }
-    return (
-        <View className="flex-row items-center mt-1.5 mb-1 px-1 gap-1">
-            <MaterialCommunityIcons name="information-outline" size={13} color="#94A3B8" />
-            <Text className="text-slate-400 text-xs flex-1">{hint}</Text>
-        </View>
-    );
-}
-
 // ─── Componente de input reutilizable ──────────────────────────────────────
 interface InputFieldProps {
-    label: string;
-    value: string;
-    onChangeText: (t: string) => void;
-    onBlur?: () => void;
-    placeholder: string;
-    hint: string;                      // Texto de ayuda siempre visible
-    leftIcon?: string;
-    keyboardType?: any;
-    autoCapitalize?: any;
-    secureTextEntry?: boolean;
-    rightIcon?: string;
-    onRightIcon?: () => void;
-    hasError?: boolean;
-    touched?: boolean;
-    error?: string | null;
-    maxLength?: number;
+    readonly label: string;
+    readonly value: string;
+    readonly onChangeText: (t: string) => void;
+    readonly onBlur?: () => void;
+    readonly placeholder: string;
+    readonly hint: string;                      // Texto de ayuda siempre visible
+    readonly leftIcon?: string;
+    readonly keyboardType?: any;
+    readonly autoCapitalize?: any;
+    readonly secureTextEntry?: boolean;
+    readonly rightIcon?: string;
+    readonly onRightIcon?: () => void;
+    readonly hasError?: boolean;
+    readonly touched?: boolean;
+    readonly error?: string | null;
+    readonly maxLength?: number;
 }
 
 function InputField({
@@ -262,12 +232,19 @@ export default function RegisterScreen() {
         if (Object.values(newErrors).some(e => e !== null)) return;
 
         // Sin errores de UI → delegar al ViewModel
-        vm.handleRegister();
+        void vm.handleRegister();
     };
 
     // ── Estado del botón ────────────────────────────────────────────────────
     const requiredFields = [vm.nombre, vm.apellidoP, vm.apellidoM, vm.telefono, vm.correo, vm.password, vm.confirmPassword];
     const isFormReady = requiredFields.every(f => f.trim().length > 0);
+
+    let submitBg = 'bg-slate-300';
+    if (vm.isLoading) {
+        submitBg = 'bg-blue-400';
+    } else if (isFormReady) {
+        submitBg = 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30';
+    }
 
     // ── Fortaleza de contraseña ─────────────────────────────────────────────
     const strength = getPasswordStrength(vm.password);
@@ -473,12 +450,7 @@ export default function RegisterScreen() {
 
                     {/* ── Botón de submit ───────────────────────────────── */}
                     <TouchableOpacity
-                        className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg mt-1 ${vm.isLoading
-                            ? 'bg-blue-400'
-                            : isFormReady
-                                ? 'bg-[#0038FF] active:bg-blue-700 shadow-blue-500/30'
-                                : 'bg-slate-300'
-                            }`}
+                        className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg mt-1 ${submitBg}`}
                         onPress={handleSubmit}
                         disabled={vm.isLoading}
                     >

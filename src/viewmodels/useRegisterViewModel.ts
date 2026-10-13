@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { AuthRepository } from '../models/repositories/AuthRepository';
 import { useRouter } from 'expo-router';
 
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 export const useRegisterViewModel = () => {
     const router = useRouter();
     const [nombre, setNombre] = useState('');
@@ -21,7 +23,7 @@ export const useRegisterViewModel = () => {
             setError('Por favor, completa todos los campos obligatorios.');
             return;
         }
-        if (!/\S+@\S+\.\S+/.test(correo)) {
+        if (!EMAIL_REGEX.test(correo.trim())) {
             setError('Ingresa un correo electrónico válido.');
             return;
         }
