@@ -58,11 +58,11 @@ export const usePedidosViewModel = () => {
 
     // Cargar al montar el componente
     useEffect(() => {
-        cargarPedidos();
+        void cargarPedidos();
     }, []);
 
     const onRefresh = useCallback(() => {
-        cargarPedidos(true);
+        void cargarPedidos(true);
     }, []);
 
     return {

@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl, Modal, ScrollView } from 'react-native';
-import { useAuthViewModel } from '../../viewmodels/useAuthViewModel';
 import { usePedidosViewModel } from '../../viewmodels/usePedidosViewModel';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function PedidosScreen() {
-    const { handleLogout } = useAuthViewModel();
     const { 
         pedidos, 
         isLoading, 
@@ -191,8 +189,8 @@ export default function PedidosScreen() {
                                 {/* Lista de Productos */}
                                 <View className="bg-[#F8FAFC] p-4 rounded-2xl mb-4 border border-[#E2E8F0]">
                                     <Text className="text-[#0038FF] font-bold mb-2 uppercase tracking-wider text-[11px]">Productos ({selectedPedido.detalles?.length || 0})</Text>
-                                    {selectedPedido.detalles?.map((det: any, idx: number) => (
-                                        <View key={idx} className="flex-row justify-between py-2 border-b border-slate-200 last:border-0">
+                                    {selectedPedido.detalles?.map((det: any) => (
+                                        <View key={det.id_detalle ?? det.id_producto ?? det.producto_nombre} className="flex-row justify-between py-2 border-b border-slate-200 last:border-0">
                                             <View className="flex-1 pr-2">
                                                 <Text className="text-slate-800 text-sm font-medium">{det.cantidad}x {det.producto_nombre}</Text>
                                             </View>
