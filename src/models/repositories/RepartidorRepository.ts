@@ -1,5 +1,9 @@
 import apiClient from '../../core/apiClient';
 
+/**
+ * Repositorio para gestión del panel principal, pedidos y entregas del repartidor.
+ * Utilizado por el panel principal (Tarea 02).
+ */
 export class RepartidorRepository {
     static async obtenerDashboard() {
         try {
