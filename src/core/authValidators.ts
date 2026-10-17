@@ -10,3 +10,9 @@ export function getPasswordStrength(v: string): { level: 0 | 1 | 2 | 3; label: s
     if (score === 2) return { level: 2, label: 'Media', color: '#F59E0B' };
     return { level: 3, label: 'Fuerte', color: '#10B981' };
 }
+
+export function isValidEmail(email: string): boolean {
+    if (!email) return false;
+    const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return EMAIL_REGEX.test(email.trim());
+}
