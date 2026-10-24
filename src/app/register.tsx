@@ -52,6 +52,11 @@ function validateTelefono(v: string): string | null {
     return null;
 }
 
+function validateCodigoRegistro(v: string): string | null {
+    if (!v.trim()) return 'El código de repartidor es obligatorio.';
+    return null;
+}
+
 function validateCorreo(v: string): string | null {
     if (!v.trim()) return 'El correo es obligatorio.';
     if (!EMAIL_REGEX.test(v)) return 'Formato inválido. Ejemplo: nombre@dominio.com';
@@ -159,6 +164,7 @@ export default function RegisterScreen() {
         apellidoP: null as string | null,
         apellidoM: null as string | null,
         telefono: null as string | null,
+        codigoRegistro: null as string | null,
         correo: null as string | null,
         password: null as string | null,
         confirmPassword: null as string | null,
@@ -167,7 +173,7 @@ export default function RegisterScreen() {
     // Estado de campos tocados
     const [touched, setTouched] = useState({
         nombre: false, apellidoP: false, apellidoM: false,
-        telefono: false, correo: false, password: false, confirmPassword: false,
+        telefono: false, codigoRegistro: false, correo: false, password: false, confirmPassword: false,
     });
 
     // ── Helpers para actualizar un campo de errors/touched ──────────────────
@@ -222,6 +228,7 @@ export default function RegisterScreen() {
             apellidoP: validateApellidoP(vm.apellidoP),
             apellidoM: validateApellidoM(vm.apellidoM),
             telefono: validateTelefono(vm.telefono),
+            codigoRegistro: validateCodigoRegistro(vm.codigoRegistro),
             correo: validateCorreo(vm.correo),
             password: validatePassword(vm.password),
             confirmPassword: validateConfirm(vm.confirmPassword, vm.password),
@@ -236,7 +243,7 @@ export default function RegisterScreen() {
     };
 
     // ── Estado del botón ────────────────────────────────────────────────────
-    const requiredFields = [vm.nombre, vm.apellidoP, vm.apellidoM, vm.telefono, vm.correo, vm.password, vm.confirmPassword];
+    const requiredFields = [vm.nombre, vm.apellidoP, vm.apellidoM, vm.telefono, vm.codigoRegistro, vm.correo, vm.password, vm.confirmPassword];
     const isFormReady = requiredFields.every(f => f.trim().length > 0);
 
     let submitBg = 'bg-slate-300';
@@ -339,6 +346,23 @@ export default function RegisterScreen() {
                         touched={touched.telefono}
                         hasError={!!errors.telefono}
                         error={errors.telefono}
+                    />
+
+                    <InputField
+                        label="Código de repartidor"
+                        leftIcon="shield-key-outline"
+                        value={vm.codigoRegistro}
+                        onChangeText={v => {
+                            vm.clearCodigoRegistroError();
+                            handleChange('codigoRegistro', vm.setCodigoRegistro, validateCodigoRegistro, v.toUpperCase());
+                        }}
+                        onBlur={() => onBlur('codigoRegistro', validateCodigoRegistro, vm.codigoRegistro)}
+                        placeholder="Ej. REP-8K4M-X7Q"
+                        hint="Solicita este código directamente a Dulcería Angelitos"
+                        autoCapitalize="characters"
+                        touched={touched.codigoRegistro}
+                        hasError={!!(errors.codigoRegistro || vm.codigoRegistroError)}
+                        error={errors.codigoRegistro || vm.codigoRegistroError}
                     />
 
                     {/* ── Correo ───────────────────────────────────────── */}
