@@ -1,5 +1,12 @@
 import apiClient from '../../core/apiClient';
 
+type EvidenciaEntrega = {
+    foto: { uri: string; mimeType: string; fileName: string };
+    nombreReceptor: string;
+    latitud: number;
+    longitud: number;
+};
+
 /**
  * Repositorio para gestión del panel principal, pedidos y entregas del repartidor.
  * Utilizado por el panel principal (Tarea 02).
@@ -33,9 +40,21 @@ export class RepartidorRepository {
         }
     }
 
-    static async confirmarEntrega(id_pedido: number) {
+    static async confirmarEntrega(id_pedido: number, evidencia: EvidenciaEntrega) {
         try {
-            const response = await apiClient.put(`/repartidor/entregar/${id_pedido}`);
+            const formData = new FormData();
+            formData.append('nombre_receptor', evidencia.nombreReceptor);
+            formData.append('latitud', String(evidencia.latitud));
+            formData.append('longitud', String(evidencia.longitud));
+            formData.append('foto', {
+                uri: evidencia.foto.uri,
+                type: evidencia.foto.mimeType,
+                name: evidencia.foto.fileName,
+            } as any);
+
+            const response = await apiClient.put(`/repartidor/entregar/${id_pedido}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
             return response.data;
         } catch (error: any) {
             throw new Error(error.response?.data?.error || 'Error al confirmar entrega');
