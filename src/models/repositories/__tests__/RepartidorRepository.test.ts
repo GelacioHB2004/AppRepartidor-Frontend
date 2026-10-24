@@ -105,4 +105,60 @@ describe('RepartidorRepository', () => {
             })
         ).rejects.toThrow('No se pudo guardar la evidencia');
     });
+    test('obtiene el historial de entregas sin filtros de fecha', async () => {
+        const historial = [{ id_pedido: 21, estado: 'Entregado', total: 350 }];
+        get.mockResolvedValueOnce({ data: historial });
+
+        await expect(RepartidorRepository.obtenerHistorial()).resolves.toEqual(historial);
+
+        expect(get).toHaveBeenCalledWith('/repartidor/historial');
+    });
+
+    test('obtiene el historial filtrado por fecha inicial y final', async () => {
+        const historial = [{ id_pedido: 22, estado: 'Entregado', total: 475.5 }];
+        get.mockResolvedValueOnce({ data: historial });
+
+        await expect(
+            RepartidorRepository.obtenerHistorial('2026-10-01', '2026-10-24')
+        ).resolves.toEqual(historial);
+
+        expect(get).toHaveBeenCalledWith(
+            '/repartidor/historial?fecha_inicio=2026-10-01&fecha_fin=2026-10-24'
+        );
+    });
+
+    test('devuelve todos los datos recibidos en la respuesta del historial', async () => {
+        const historial = [
+            {
+                id_pedido: 23,
+                nombre_cliente: 'Laura Torres',
+                direccion_entrega: 'Centro',
+                telefono_cliente: '7711234567',
+                total: '520.00',
+            },
+        ];
+        get.mockResolvedValueOnce({ data: historial });
+
+        const resultado = await RepartidorRepository.obtenerHistorial();
+
+        expect(resultado).toEqual(historial);
+    });
+
+    test('devuelve el mensaje del servidor cuando falla la consulta del historial', async () => {
+        get.mockRejectedValueOnce({
+            response: { data: { error: 'No fue posible consultar las entregas' } },
+        });
+
+        await expect(RepartidorRepository.obtenerHistorial()).rejects.toThrow(
+            'No fue posible consultar las entregas'
+        );
+    });
+
+    test('devuelve un error controlado cuando falla la conexión del historial', async () => {
+        get.mockRejectedValueOnce(new Error('Network Error'));
+
+        await expect(RepartidorRepository.obtenerHistorial()).rejects.toThrow(
+            'Error al obtener historial'
+        );
+    });
 });
