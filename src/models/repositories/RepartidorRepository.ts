@@ -21,6 +21,7 @@ export class RepartidorRepository {
         }
     }
 
+
     static async obtenerPedidosAsignados() {
         try {
             const response = await apiClient.get('/repartidor/pedidos');
