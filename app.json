@@ -36,7 +36,20 @@
         }
       ],
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Permite que Dulcería Angelitos use la cámara para registrar la evidencia de entrega.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Permite que Dulcería Angelitos registre tu ubicación al confirmar una entrega."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

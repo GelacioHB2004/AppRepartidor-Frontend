@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl, Modal, ScrollView } from 'react-native';
 import { usePedidosViewModel } from '../../viewmodels/usePedidosViewModel';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import DeliveryEvidenceModal, { EvidenciaEntregaForm } from '../../components/DeliveryEvidenceModal';
 
 export default function PedidosScreen() {
     const { 
@@ -11,10 +12,17 @@ export default function PedidosScreen() {
         error, 
         onRefresh, 
         iniciarEntrega, 
+        abrirRuta,
         confirmarEntrega 
     } = usePedidosViewModel();
 
     const [selectedPedido, setSelectedPedido] = useState<any>(null);
+    const [pedidoParaEvidencia, setPedidoParaEvidencia] = useState<any>(null);
+
+    const confirmarConEvidencia = async (evidencia: EvidenciaEntregaForm) => {
+        if (!pedidoParaEvidencia) return false;
+        return confirmarEntrega(pedidoParaEvidencia.id_pedido, evidencia);
+    };
 
     const pendientesCount = pedidos ? pedidos.filter((p: any) => p.estado !== 'Entregado').length : 0;
 
@@ -70,13 +78,22 @@ export default function PedidosScreen() {
 
             {/* Action Button */}
             {item.estado === 'En camino' ? (
-                <TouchableOpacity 
-                    className="bg-emerald-600 py-3.5 rounded-2xl flex-row justify-center items-center shadow-md shadow-emerald-500/20 active:bg-emerald-700"
-                    onPress={() => confirmarEntrega(item.id_pedido)}
-                >
-                    <MaterialCommunityIcons name="check-bold" size={18} color="white" style={{ marginRight: 6 }} />
-                    <Text className="text-white font-bold text-sm">Confirmar Entrega</Text>
-                </TouchableOpacity>
+                <View className="gap-2">
+                    <TouchableOpacity 
+                        className="bg-[#0038FF] py-3.5 rounded-2xl flex-row justify-center items-center shadow-md shadow-blue-500/20 active:bg-blue-700"
+                        onPress={() => abrirRuta(item.direccion_entrega)}
+                    >
+                        <MaterialCommunityIcons name="map-outline" size={18} color="white" style={{ marginRight: 6 }} />
+                        <Text className="text-white font-bold text-sm">Seguir Ruta</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        className="bg-emerald-600 py-3.5 rounded-2xl flex-row justify-center items-center shadow-md shadow-emerald-500/20 active:bg-emerald-700"
+                        onPress={() => setPedidoParaEvidencia(item)}
+                    >
+                        <MaterialCommunityIcons name="check-bold" size={18} color="white" style={{ marginRight: 6 }} />
+                        <Text className="text-white font-bold text-sm">Confirmar Entrega</Text>
+                    </TouchableOpacity>
+                </View>
             ) : (
                 <TouchableOpacity 
                     className="bg-[#0038FF] py-3.5 rounded-2xl flex-row justify-center items-center shadow-md shadow-blue-500/20 active:bg-blue-700"
@@ -224,6 +241,13 @@ export default function PedidosScreen() {
                     </View>
                 </View>
             </Modal>
+
+            <DeliveryEvidenceModal
+                visible={!!pedidoParaEvidencia}
+                idPedido={pedidoParaEvidencia?.id_pedido}
+                onClose={() => setPedidoParaEvidencia(null)}
+                onConfirm={confirmarConEvidencia}
+            />
         </View>
     );
 }
