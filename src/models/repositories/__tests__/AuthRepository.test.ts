@@ -45,6 +45,23 @@ describe('AuthRepository', () => {
         );
     });
 
+    test('envía el código de repartidor al registrar una cuenta', async () => {
+        const datos = {
+            nombre: 'Ana',
+            apellidoP: 'López',
+            apellidoM: 'Martínez',
+            correo: 'ana@angelitos.com',
+            telefono: '7711234567',
+            codigoRegistro: 'REP-8K4M-X7Q',
+            password: 'Secreta123!',
+        };
+        post.mockResolvedValueOnce({ data: { message: 'Registro exitoso' } });
+
+        await AuthRepository.register(datos);
+
+        expect(post).toHaveBeenCalledWith('/auth/register', datos);
+    });
+
     test('envía el correo y la nueva contraseña al restablecerla', async () => {
         const response = { message: 'Contraseña actualizada' };
         post.mockResolvedValueOnce({ data: response });
