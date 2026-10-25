@@ -13,6 +13,7 @@ import {
 import { usePerfilViewModel } from '../../viewmodels/usePerfilViewModel';
 import { useAuthViewModel } from '../../viewmodels/useAuthViewModel';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -80,6 +81,7 @@ function MenuRow({ icon, label, onPress, isRed = false, showDivider = true }: Me
 }
 
 export default function PerfilScreen() {
+    const router = useRouter();
     const { handleLogout } = useAuthViewModel();
     const {
         nombre,
@@ -231,7 +233,7 @@ export default function PerfilScreen() {
                     />
                 </View>
 
-                {/* ── Menu Card 2: Cerrar Sesión ── */}
+                {/* ── Menu Card 2: Términos / Cerrar Sesión ── */}
                 <View style={{
                     backgroundColor: '#FFFFFF',
                     borderRadius: 20,
@@ -244,6 +246,11 @@ export default function PerfilScreen() {
                     shadowRadius: 8,
                     elevation: 2,
                 }}>
+                    <MenuRow
+                        icon="file-document-outline"
+                        label="Términos y Condiciones"
+                        onPress={() => router.push('/terminos')}
+                    />
                     <MenuRow
                         icon="logout"
                         label="Cerrar Sesión"
