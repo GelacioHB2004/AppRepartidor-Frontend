@@ -50,11 +50,11 @@ export const useHistorialViewModel = () => {
 
     // Recargar cuando cambie cualquier fecha
     useEffect(() => {
-        cargarHistorial();
+        void cargarHistorial();
     }, [fechaInicio, fechaFin]);
 
     const onRefresh = useCallback(() => {
-        cargarHistorial(true);
+        void cargarHistorial(true);
     }, [fechaInicio, fechaFin]);
 
     return {
