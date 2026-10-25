@@ -4,7 +4,22 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LegalDocument, LegalRepository } from '@/models/repositories/LegalRepository';
 
-export function LegalDocumentScreen() {
+type LegalDocumentScreenProps = {
+    tipo?: 'terminos' | 'politicas';
+};
+
+const documentos = {
+    terminos: {
+        titulo: 'Términos y Condiciones',
+        icono: 'file-document-outline' as const,
+    },
+    politicas: {
+        titulo: 'Políticas de Privacidad',
+        icono: 'shield-account-outline' as const,
+    },
+};
+
+export function LegalDocumentScreen({ tipo = 'terminos' }: LegalDocumentScreenProps) {
     const router = useRouter();
     const [documento, setDocumento] = useState<LegalDocument | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -14,14 +29,16 @@ export function LegalDocumentScreen() {
         setIsLoading(true);
         setError('');
         try {
-            const resultado = await LegalRepository.obtenerTerminos();
+            const resultado = tipo === 'terminos'
+                ? await LegalRepository.obtenerTerminos()
+                : await LegalRepository.obtenerPoliticas();
             setDocumento(resultado);
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'No fue posible cargar este documento. Intenta nuevamente.');
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [tipo]);
 
     useEffect(() => {
         void cargarDocumento();
@@ -33,7 +50,7 @@ export function LegalDocumentScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={{ padding: 4, marginRight: 12 }} accessibilityLabel="Regresar">
                     <MaterialCommunityIcons name="arrow-left" size={25} color="#0F172A" />
                 </TouchableOpacity>
-                <Text style={{ flex: 1, fontSize: 20, fontWeight: '800', color: '#0F172A' }}>Términos y Condiciones</Text>
+                <Text style={{ flex: 1, fontSize: 20, fontWeight: '800', color: '#0F172A' }}>{documentos[tipo].titulo}</Text>
             </View>
 
             <ScrollView
@@ -57,7 +74,7 @@ export function LegalDocumentScreen() {
                 ) : documento && (
                     <View style={{ backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#F1F5F9' }}>
                         <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-                            <MaterialCommunityIcons name="file-document-outline" size={24} color="#0038FF" />
+                            <MaterialCommunityIcons name={documentos[tipo].icono} size={24} color="#0038FF" />
                         </View>
                         <Text style={{ fontSize: 21, fontWeight: '800', color: '#0F172A', marginBottom: 5 }}>{documento.titulo}</Text>
                         {documento.version && <Text style={{ color: '#64748B', fontSize: 12, marginBottom: 20 }}>Versión {documento.version}</Text>}
