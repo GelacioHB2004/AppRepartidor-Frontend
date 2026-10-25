@@ -233,7 +233,7 @@ export default function PerfilScreen() {
                     />
                 </View>
 
-                {/* ── Menu Card 2: Términos / Cerrar Sesión ── */}
+                {/* ── Menu Card 2: Documentos legales / Cerrar Sesión ── */}
                 <View style={{
                     backgroundColor: '#FFFFFF',
                     borderRadius: 20,
@@ -250,6 +250,11 @@ export default function PerfilScreen() {
                         icon="file-document-outline"
                         label="Términos y Condiciones"
                         onPress={() => router.push('/terminos')}
+                    />
+                    <MenuRow
+                        icon="shield-account-outline"
+                        label="Políticas de Privacidad"
+                        onPress={() => router.push('/politicas')}
                     />
                     <MenuRow
                         icon="logout"

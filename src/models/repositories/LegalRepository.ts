@@ -26,4 +26,14 @@ export const LegalRepository = {
             throw new Error(apiError.response?.data?.error || 'Error al obtener términos y condiciones');
         }
     },
+
+    async obtenerPoliticas(): Promise<LegalDocument> {
+        try {
+            const response = await apiClient.get('/legal/politicas');
+            return response.data.documento;
+        } catch (error: unknown) {
+            const apiError = error as ApiError;
+            throw new Error(apiError.response?.data?.error || 'Error al obtener políticas de privacidad');
+        }
+    },
 };
