@@ -25,7 +25,7 @@ export class AuthRepository {
 
     static async register(datos: {
         nombre: string; apellidoP: string; apellidoM: string;
-        correo: string; telefono: string; password: string;
+        correo: string; telefono: string; codigoRegistro: string; password: string;
     }) {
         try {
             const response = await apiClient.post('/auth/register', datos);

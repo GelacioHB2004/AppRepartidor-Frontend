@@ -11,15 +11,18 @@ export const useRegisterViewModel = () => {
     const [apellidoM, setApellidoM] = useState('');
     const [correo, setCorreo] = useState('');
     const [telefono, setTelefono] = useState('');
+    const [codigoRegistro, setCodigoRegistro] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [codigoRegistroError, setCodigoRegistroError] = useState<string | null>(null);
 
     const handleRegister = async () => {
         setError(null);
+        setCodigoRegistroError(null);
 
-        if (!nombre.trim() || !apellidoP.trim() || !correo.trim() || !telefono.trim() || !password) {
+        if (!nombre.trim() || !apellidoP.trim() || !correo.trim() || !telefono.trim() || !codigoRegistro.trim() || !password) {
             setError('Por favor, completa todos los campos obligatorios.');
             return;
         }
@@ -48,12 +51,17 @@ export const useRegisterViewModel = () => {
                 apellidoM: apellidoM.trim(),
                 correo: correo.trim().toLowerCase(),
                 telefono: telefono.trim(),
+                codigoRegistro: codigoRegistro.trim().toUpperCase(),
                 password,
             });
             // Navegar a la pantalla de verificación, pasando el correo
             router.push({ pathname: '/verify-account', params: { correo: correo.trim().toLowerCase() } } as any);
         } catch (err: any) {
-            setError(err.message);
+            if (err.message?.toLowerCase().includes('código de registro')) {
+                setCodigoRegistroError('El código de repartidor no es válido, ya fue usado o expiró.');
+            } else {
+                setError(err.message);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -65,9 +73,11 @@ export const useRegisterViewModel = () => {
         apellidoM, setApellidoM,
         correo, setCorreo,
         telefono, setTelefono,
+        codigoRegistro, setCodigoRegistro,
         password, setPassword,
         confirmPassword, setConfirmPassword,
-        isLoading, error,
+        isLoading, error, codigoRegistroError,
+        clearCodigoRegistroError: () => setCodigoRegistroError(null),
         handleRegister,
     };
 };

@@ -34,8 +34,8 @@ export default function VerifyAccountScreen() {
         setIsLoading(true);
         try {
             await AuthRepository.verifyAccount(correo, codigo);
-            setSuccess('¡Cuenta verificada! Redirigiendo al inicio de sesión...');
-            setTimeout(() => router.replace('/login' as any), 2000);
+            setSuccess('Correo verificado. Tu registro fue completado y está pendiente de aprobación por Dulcería Angelitos.');
+            setTimeout(() => router.replace('/login' as any), 3500);
         } catch (err: any) {
             setError(err.message);
         } finally {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -7,11 +7,13 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
-    ScrollView
+    ScrollView,
+    Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthViewModel } from '../viewmodels/useAuthViewModel';
+import { EmpresaRepository } from '../models/repositories/EmpresaRepository';
 
 // ─── Helpers de validación ──────────────────────────────────────────────────
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -52,6 +54,22 @@ export default function LoginScreen() {
     } = useAuthViewModel();
 
     const [showPassword, setShowPassword] = useState(false);
+    const [logoUrl, setLogoUrl] = useState<string | null>(null);
+    const [logoNoDisponible, setLogoNoDisponible] = useState(false);
+
+    useEffect(() => {
+        const cargarLogo = async () => {
+            try {
+                const empresa = await EmpresaRepository.obtenerEmpresaActiva();
+                setLogoUrl(empresa.logo);
+            } catch {
+                // El ícono predeterminado se mantiene si no hay logo o no hay conexión.
+                setLogoNoDisponible(true);
+            }
+        };
+
+        void cargarLogo();
+    }, []);
 
     // Errores individuales por campo (se activan al perder el foco o al intentar enviar)
     const [correoError, setCorreoError] = useState<string | null>(null);
@@ -126,7 +144,17 @@ export default function LoginScreen() {
                 {/* ── Logo & Header ─────────────────────────────────────── */}
                 <View className="items-center mb-6 w-full max-w-sm">
                     <View className="w-36 h-36 rounded-full bg-amber-100 border-4 border-white shadow-lg shadow-amber-500/10 items-center justify-center mb-4 overflow-hidden">
-                        <MaterialCommunityIcons name="storefront" size={60} color="#F59E0B" />
+                        {logoUrl && !logoNoDisponible ? (
+                            <Image
+                                source={{ uri: logoUrl }}
+                                style={{ width: '100%', height: '100%' }}
+                                resizeMode="cover"
+                                onError={() => setLogoNoDisponible(true)}
+                                accessibilityLabel="Logo de Dulcería Angelitos"
+                            />
+                        ) : (
+                            <MaterialCommunityIcons name="storefront" size={60} color="#F59E0B" />
+                        )}
                     </View>
                     <Text className="text-3xl font-extrabold text-slate-800 tracking-tight text-center">
                         Repartidores
