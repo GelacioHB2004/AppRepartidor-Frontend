@@ -38,6 +38,13 @@
       "expo-secure-store",
       "@react-native-community/datetimepicker",
       [
+        "expo-notifications",
+        {
+          "color": "#0038FF",
+          "defaultChannel": "pedidos"
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "cameraPermission": "Permite que Dulcería Angelitos use la cámara para registrar la evidencia de entrega.",

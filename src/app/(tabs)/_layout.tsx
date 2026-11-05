@@ -1,8 +1,28 @@
-import { Tabs } from 'expo-router';
+import { useEffect } from 'react';
+import { Tabs, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
+import {
+  escucharAperturaDeNotificaciones,
+  registrarDispositivoParaNotificaciones,
+} from '../../services/notificacionService';
 
 export default function TabLayout() {
+  const router = useRouter();
+
+  useEffect(() => {
+    void registrarDispositivoParaNotificaciones().catch((error) => {
+      console.warn('No fue posible registrar las notificaciones:', error.message);
+    });
+
+    let detenerEscucha = () => {};
+    void escucharAperturaDeNotificaciones(() => router.push('/(tabs)/pedidos'))
+      .then((detener) => { detenerEscucha = detener; })
+      .catch((error) => console.warn('No fue posible escuchar notificaciones:', error.message));
+
+    return () => detenerEscucha();
+  }, [router]);
+
   return (
     <Tabs
       screenOptions={{

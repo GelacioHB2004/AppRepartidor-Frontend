@@ -9,11 +9,16 @@ import {
     KeyboardAvoidingView,
     Platform,
     Modal,
+    Alert,
+    Linking,
 } from 'react-native';
 import { usePerfilViewModel } from '../../viewmodels/usePerfilViewModel';
 import { useAuthViewModel } from '../../viewmodels/useAuthViewModel';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { PerfilRepository } from '../../models/repositories/PerfilRepository';
+
+const ACCOUNT_DELETION_URL = 'https://gelaciohb2004.github.io/AppRepartidor-Frontend/account-deletion.html';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -103,6 +108,46 @@ export default function PerfilScreen() {
     } = usePerfilViewModel();
 
     const [editModalVisible, setEditModalVisible] = useState(false);
+    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+    const [deletePassword, setDeletePassword] = useState('');
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const eliminarCuentaConfirmada = async () => {
+        setIsDeleting(true);
+        setDeleteError(null);
+
+        try {
+            await PerfilRepository.eliminarCuenta(deletePassword);
+            setDeleteModalVisible(false);
+            setDeletePassword('');
+            Alert.alert(
+                'Cuenta eliminada',
+                'Tu cuenta y tus datos personales fueron eliminados correctamente.',
+                [{ text: 'Aceptar', onPress: () => { void handleLogout(); } }]
+            );
+        } catch (err: any) {
+            setDeleteError(err.message || 'No fue posible eliminar la cuenta.');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const solicitarEliminacion = () => {
+        if (!deletePassword) {
+            setDeleteError('Ingresa tu contraseña para continuar.');
+            return;
+        }
+
+        Alert.alert(
+            'Eliminar cuenta definitivamente',
+            'Esta acción no se puede deshacer. Se eliminarán tu cuenta y tus datos personales, y se desvinculará tu identidad del historial operativo de entregas.',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Eliminar definitivamente', style: 'destructive', onPress: () => { void eliminarCuentaConfirmada(); } },
+            ]
+        );
+    };
 
     if (isLoading) {
         return (
@@ -228,7 +273,7 @@ export default function PerfilScreen() {
                     <MenuRow
                         icon="bell-outline"
                         label="Notificaciones y Alertas"
-                        onPress={() => {}}
+                        onPress={() => router.push('/notifications')}
                         showDivider={false}
                     />
                 </View>
@@ -255,6 +300,16 @@ export default function PerfilScreen() {
                         icon="shield-account-outline"
                         label="Políticas de Privacidad"
                         onPress={() => router.push('/politicas')}
+                    />
+                    <MenuRow
+                        icon="account-remove-outline"
+                        label="Eliminar mi cuenta"
+                        onPress={() => {
+                            setDeleteError(null);
+                            setDeletePassword('');
+                            setDeleteModalVisible(true);
+                        }}
+                        isRed
                     />
                     <MenuRow
                         icon="logout"
@@ -394,6 +449,80 @@ export default function PerfilScreen() {
                             )}
                         </TouchableOpacity>
                     </ScrollView>
+                </KeyboardAvoidingView>
+            </Modal>
+
+            <Modal
+                visible={deleteModalVisible}
+                animationType="slide"
+                transparent
+                onRequestClose={() => {
+                    if (!isDeleting) setDeleteModalVisible(false);
+                }}
+            >
+                <KeyboardAvoidingView
+                    style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.55)', justifyContent: 'flex-end' }}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                >
+                    <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, paddingBottom: Platform.OS === 'ios' ? 40 : 24 }}>
+                        <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: '#FFF1F2', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                            <MaterialCommunityIcons name="account-remove-outline" size={28} color="#E11D48" />
+                        </View>
+                        <Text style={{ fontSize: 22, fontWeight: '800', color: '#0F172A', marginBottom: 8 }}>
+                            Eliminar mi cuenta
+                        </Text>
+                        <Text style={{ fontSize: 14, color: '#475569', lineHeight: 21, marginBottom: 18 }}>
+                            La eliminación es permanente. Borraremos tu perfil, credenciales y datos de autenticación, y desvincularemos tu identidad de los registros operativos que deban conservarse.
+                        </Text>
+
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', marginBottom: 7 }}>
+                            Confirma tu contraseña
+                        </Text>
+                        <TextInput
+                            value={deletePassword}
+                            onChangeText={(value) => {
+                                setDeletePassword(value);
+                                setDeleteError(null);
+                            }}
+                            secureTextEntry
+                            editable={!isDeleting}
+                            autoCapitalize="none"
+                            placeholder="Contraseña actual"
+                            placeholderTextColor="#94A3B8"
+                            style={{ borderWidth: 1, borderColor: deleteError ? '#FCA5A5' : '#CBD5E1', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: '#0F172A', marginBottom: deleteError ? 8 : 16 }}
+                        />
+
+                        {deleteError && (
+                            <Text style={{ color: '#B91C1C', fontSize: 13, marginBottom: 14 }}>{deleteError}</Text>
+                        )}
+
+                        <TouchableOpacity
+                            onPress={solicitarEliminacion}
+                            disabled={isDeleting}
+                            style={{ backgroundColor: isDeleting ? '#FDA4AF' : '#E11D48', borderRadius: 15, paddingVertical: 15, alignItems: 'center', marginBottom: 10 }}
+                        >
+                            {isDeleting ? <ActivityIndicator color="#FFFFFF" /> : (
+                                <Text style={{ color: '#FFFFFF', fontSize: 15, fontWeight: '800' }}>Eliminar definitivamente</Text>
+                            )}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => setDeleteModalVisible(false)}
+                            disabled={isDeleting}
+                            style={{ borderRadius: 15, paddingVertical: 14, alignItems: 'center' }}
+                        >
+                            <Text style={{ color: '#334155', fontSize: 15, fontWeight: '700' }}>Cancelar</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => { void Linking.openURL(ACCOUNT_DELETION_URL); }}
+                            style={{ paddingTop: 8, alignItems: 'center' }}
+                        >
+                            <Text style={{ color: '#0038FF', fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' }}>
+                                Consulta otras formas de solicitar la eliminación
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </KeyboardAvoidingView>
             </Modal>
         </View>

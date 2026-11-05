@@ -1,12 +1,20 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, Linking } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useInicioViewModel } from '../../viewmodels/useInicioViewModel';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { NotificacionRepository, NotificacionRepartidor } from '../../models/repositories/NotificacionRepository';
 
 export default function InicioScreen() {
     const { dashboardData, isLoading, isRefreshing, error, onRefresh, usuarioNombre } = useInicioViewModel();
     const router = useRouter();
+    const [ultimaNotificacion, setUltimaNotificacion] = useState<NotificacionRepartidor | null>(null);
+
+    useFocusEffect(useCallback(() => {
+        void NotificacionRepository.listar()
+            .then((notificaciones) => setUltimaNotificacion(notificaciones[0] || null))
+            .catch(() => setUltimaNotificacion(null));
+    }, []));
 
     const openMap = (address: string) => {
         const query = encodeURIComponent(address);
@@ -198,7 +206,10 @@ export default function InicioScreen() {
                         </View>
 
                         {/* Notificaciones Card */}
-                        <View className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm mb-8">
+                        <TouchableOpacity
+                            className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm mb-8"
+                            onPress={() => router.push('/notifications')}
+                        >
                             <View className="flex-row items-center mb-3">
                                 <MaterialCommunityIcons name="bell-outline" size={18} color="#0038FF" style={{ marginRight: 6 }} />
                                 <Text className="text-slate-800 font-bold text-sm">Notificaciones</Text>
@@ -208,17 +219,17 @@ export default function InicioScreen() {
                                 <View className="w-2.5 h-2.5 rounded-full bg-[#0038FF] mt-1 mr-2.5" />
                                 <View className="flex-1">
                                     <Text className="text-slate-800 font-bold text-xs mb-0.5">
-                                        Ruta optimizada automáticamente
+                                        {ultimaNotificacion?.titulo || 'Notificaciones de pedidos'}
                                     </Text>
                                     <Text className="text-slate-400 text-xs leading-4 mb-1">
-                                        Recuerda solicitar el código de 4 dígitos al entregar el pedido.
+                                        {ultimaNotificacion?.mensaje || 'Activa las alertas para saber cuando se te asigne un pedido nuevo.'}
                                     </Text>
                                     <Text className="text-slate-400 text-[10px] font-medium">
-                                        Hace 12 minutos
+                                        {ultimaNotificacion ? new Date(ultimaNotificacion.fecha_creacion).toLocaleString('es-MX') : 'Configurar alertas'}
                                     </Text>
                                 </View>
                             </View>
-                        </View>
+                        </TouchableOpacity>
                     </>
                 )}
             </ScrollView>

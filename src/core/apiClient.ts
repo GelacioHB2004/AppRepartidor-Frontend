@@ -3,7 +3,8 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
 // Usamos la IP de tu computadora para que funcione tanto en Web como en tu celular físico
-const API_URL = 'https://apprepartidor-backend.onrender.com/api';
+const API_URL = process.env.EXPO_PUBLIC_API_URL
+    || 'https://apprepartidor-backend-rcp2.onrender.com/api';
 
 const apiClient = axios.create({
     baseURL: API_URL,

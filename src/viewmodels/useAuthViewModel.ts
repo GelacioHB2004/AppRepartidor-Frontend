@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { AuthRepository } from '../models/repositories/AuthRepository';
+import { desregistrarDispositivoDeNotificaciones } from '../services/notificacionService';
 
 export const useAuthViewModel = () => {
     const [correo, setCorreo] = useState('');
@@ -13,7 +14,7 @@ export const useAuthViewModel = () => {
 
     const handleLogin = async () => {
         if (!correo || !password) {
-            setError('Por favor, ingresa correo y contraseña.');
+            setError('Por favor, ingresa correo y contrasena.');
             return;
         }
 
@@ -22,16 +23,12 @@ export const useAuthViewModel = () => {
 
         try {
             const data = await AuthRepository.login(correo, password);
-            
-            // Si el login fue exitoso, guardamos el token
             if (data.token) {
                 if (Platform.OS === 'web') {
                     localStorage.setItem('userToken', data.token);
                 } else {
                     await SecureStore.setItemAsync('userToken', data.token);
                 }
-                
-                // Redirigir a la pestaña principal (Inicio / Dashboard)
                 router.replace('/(tabs)' as any);
             }
         } catch (err: any) {
@@ -44,20 +41,23 @@ export const useAuthViewModel = () => {
     const handleLogout = async () => {
         setIsLoading(true);
         try {
-            // Intentar avisar al servidor (no crítico si falla)
+            try {
+                await desregistrarDispositivoDeNotificaciones();
+            } catch {
+                console.warn('No se pudo desregistrar el dispositivo de notificaciones.');
+            }
             await AuthRepository.logout();
-        } catch (err) {
-            console.warn('No se pudo cerrar sesión en el servidor.');
+        } catch {
+            console.warn('No se pudo cerrar sesion en el servidor.');
         } finally {
-            // Siempre limpiar el token local y redirigir al login
             try {
                 if (Platform.OS === 'web') {
                     localStorage.removeItem('userToken');
                 } else {
                     await SecureStore.deleteItemAsync('userToken');
                 }
-            } catch (e) {
-                console.warn('Error al limpiar token local:', e);
+            } catch {
+                console.warn('Error al limpiar el token local.');
             }
             setIsLoading(false);
             router.replace('/login' as any);
@@ -72,6 +72,6 @@ export const useAuthViewModel = () => {
         isLoading,
         error,
         handleLogin,
-        handleLogout
+        handleLogout,
     };
 };

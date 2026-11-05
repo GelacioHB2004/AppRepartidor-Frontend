@@ -157,6 +157,8 @@ export default function RegisterScreen() {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [aceptaDocumentos, setAceptaDocumentos] = useState(false);
+    const [documentosError, setDocumentosError] = useState<string | null>(null);
 
     // Estado de errores individuales por campo
     const [errors, setErrors] = useState({
@@ -219,6 +221,12 @@ export default function RegisterScreen() {
 
     // ── Submit con validación completa ───────────────────────────────────────
     const handleSubmit = () => {
+        if (!aceptaDocumentos) {
+            setDocumentosError('Debes aceptar los Términos y la Política de privacidad para registrarte.');
+        } else {
+            setDocumentosError(null);
+        }
+
         // Marcar todos como tocados
         const allTouched = Object.fromEntries(Object.keys(touched).map(k => [k, true])) as typeof touched;
         setTouched(allTouched);
@@ -236,7 +244,7 @@ export default function RegisterScreen() {
         setErrors(newErrors);
 
         // Si hay algún error de UI, no continuar
-        if (Object.values(newErrors).some(e => e !== null)) return;
+        if (Object.values(newErrors).some(e => e !== null) || !aceptaDocumentos) return;
 
         // Sin errores de UI → delegar al ViewModel
         void vm.handleRegister();
@@ -244,7 +252,7 @@ export default function RegisterScreen() {
 
     // ── Estado del botón ────────────────────────────────────────────────────
     const requiredFields = [vm.nombre, vm.apellidoP, vm.apellidoM, vm.telefono, vm.codigoRegistro, vm.correo, vm.password, vm.confirmPassword];
-    const isFormReady = requiredFields.every(f => f.trim().length > 0);
+    const isFormReady = requiredFields.every(f => f.trim().length > 0) && aceptaDocumentos;
 
     let submitBg = 'bg-slate-300';
     if (vm.isLoading) {
@@ -472,11 +480,63 @@ export default function RegisterScreen() {
                         />
                     </View>
 
+                    {/* ── Aceptación de documentos legales ────────────── */}
+                    <View
+                        className="flex-row items-start rounded-2xl bg-slate-50 p-4 mb-2"
+                        style={{ borderWidth: 1, borderColor: documentosError ? '#EF4444' : '#E2E8F0' }}
+                    >
+                        <TouchableOpacity
+                            className="w-6 h-6 rounded-md items-center justify-center mr-3 mt-0.5"
+                            style={{
+                                backgroundColor: aceptaDocumentos ? '#0038FF' : '#FFFFFF',
+                                borderWidth: 1.5,
+                                borderColor: aceptaDocumentos ? '#0038FF' : '#94A3B8',
+                            }}
+                            onPress={() => {
+                                setAceptaDocumentos((valor) => !valor);
+                                setDocumentosError(null);
+                            }}
+                            accessibilityRole="checkbox"
+                            accessibilityLabel="Aceptar términos y política de privacidad"
+                            accessibilityState={{ checked: aceptaDocumentos }}
+                        >
+                            {aceptaDocumentos && (
+                                <MaterialCommunityIcons name="check" size={17} color="#FFFFFF" />
+                            )}
+                        </TouchableOpacity>
+                        <Text className="flex-1 text-slate-600 text-xs leading-5">
+                            He leído y acepto los{' '}
+                            <Text
+                                className="text-[#0038FF] font-bold"
+                                onPress={() => router.push('/terminos')}
+                            >
+                                Términos y condiciones
+                            </Text>
+                            {' '}y la{' '}
+                            <Text
+                                className="text-[#0038FF] font-bold"
+                                onPress={() => router.push('/politicas')}
+                            >
+                                Política de privacidad
+                            </Text>
+                            .
+                        </Text>
+                    </View>
+
+                    {documentosError && (
+                        <View className="flex-row items-start px-1 mb-3">
+                            <MaterialCommunityIcons name="alert-circle-outline" size={14} color="#EF4444" style={{ marginTop: 1 }} />
+                            <Text className="text-red-500 text-xs font-medium flex-1 ml-1.5">
+                                {documentosError}
+                            </Text>
+                        </View>
+                    )}
+
                     {/* ── Botón de submit ───────────────────────────────── */}
                     <TouchableOpacity
                         className={`py-4 rounded-2xl flex-row justify-center items-center shadow-lg mt-1 ${submitBg}`}
                         onPress={handleSubmit}
-                        disabled={vm.isLoading}
+                        disabled={vm.isLoading || !isFormReady}
                     >
                         {vm.isLoading ? (
                             <ActivityIndicator color="white" />
