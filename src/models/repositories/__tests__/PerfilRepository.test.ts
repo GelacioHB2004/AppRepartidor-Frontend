@@ -6,11 +6,13 @@ jest.mock('../../../core/apiClient', () => ({
     default: {
         get: jest.fn(),
         put: jest.fn(),
+        delete: jest.fn(),
     },
 }));
 
 const get = apiClient.get as jest.Mock;
 const put = apiClient.put as jest.Mock;
+const deleteRequest = apiClient.delete as jest.Mock;
 
 describe('PerfilRepository', () => {
     beforeEach(() => {
@@ -91,5 +93,33 @@ describe('PerfilRepository', () => {
                 telefono: '7711234567',
             })
         ).rejects.toThrow('Error al actualizar perfil');
+    });
+    test('elimina la cuenta confirmando la contraseña', async () => {
+        const respuesta = { message: 'Cuenta y datos personales eliminados correctamente.' };
+        deleteRequest.mockResolvedValueOnce({ data: respuesta });
+
+        await expect(PerfilRepository.eliminarCuenta('Password123!')).resolves.toEqual(respuesta);
+
+        expect(deleteRequest).toHaveBeenCalledWith('/perfil/cuenta', {
+            data: { password: 'Password123!' },
+        });
+    });
+
+    test('devuelve el mensaje del servidor cuando no elimina la cuenta', async () => {
+        deleteRequest.mockRejectedValueOnce({
+            response: { data: { error: 'La contraseña es incorrecta.' } },
+        });
+
+        await expect(PerfilRepository.eliminarCuenta('incorrecta')).rejects.toThrow(
+            'La contraseña es incorrecta.'
+        );
+    });
+
+    test('devuelve un error controlado cuando falla la conexión al eliminar la cuenta', async () => {
+        deleteRequest.mockRejectedValueOnce(new Error('Network Error'));
+
+        await expect(PerfilRepository.eliminarCuenta('Password123!')).rejects.toThrow(
+            'Error al eliminar la cuenta'
+        );
     });
 });
