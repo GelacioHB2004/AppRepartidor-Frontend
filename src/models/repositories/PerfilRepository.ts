@@ -23,4 +23,15 @@ export class PerfilRepository {
             throw new Error(error.response?.data?.error || 'Error al actualizar perfil');
         }
     }
+
+    static async eliminarCuenta(password: string) {
+        try {
+            const response = await apiClient.delete('/perfil/cuenta', {
+                data: { password },
+            });
+            return response.data;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.error || 'Error al eliminar la cuenta');
+        }
+    }
 }
